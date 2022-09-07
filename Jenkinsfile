@@ -79,6 +79,14 @@ pipeline {
                 sh "ssh -o StrictHostKeyChecking=no -i ${env.SERVER_LOGIN} ${params.SSH_USER}@${params.SERVER_FQDN} 'docker run hello-world'"
             }
         }
+        stage('Another start on Server') {
+            steps {
+                echo "Start Docker on Server"
+                sh "ssh -o StrictHostKeyChecking=no -i ${env.SERVER_LOGIN} ${params.SSH_USER}@${params.SERVER_FQDN} 'wget https://raw.githubusercontent.com/schumad/ci-cd-test/main/Dockerfile'"
+                sh "ssh -o StrictHostKeyChecking=no -i ${env.SERVER_LOGIN} ${params.SSH_USER}@${params.SERVER_FQDN} 'docker build -t ${params.ARTIFACTORY_URL}/${params.IMAGE} .'"
+                sh "ssh -o StrictHostKeyChecking=no -i ${env.SERVER_LOGIN} ${params.SSH_USER}@${params.SERVER_FQDN} 'docker run --rm ${params.ARTIFACTORY_URL}/${params.IMAGE}'"
+            }
+        }
         stage('Function Test') {
             steps {
                 echo "Function Test with Trigger"
