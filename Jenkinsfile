@@ -81,7 +81,7 @@ pipeline {
         }
         stage('Function Test') {
             steps {
-                echo "Function Test"
+                echo "Function Test with Trigger"
             }
         }
     }
