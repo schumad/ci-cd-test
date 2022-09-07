@@ -1,7 +1,7 @@
 pipeline {
     agent any
     environment{
-        ARTIFACTORY_LOGIN=credentials('artifactory-login')
+        //ARTIFACTORY_LOGIN=credentials('artifactory-login')
         SERVER_LOGIN=credentials('linux')
     }
     parameters {
@@ -22,7 +22,7 @@ pipeline {
                description: 'user for ssh connection')
 
         string(name: 'SERVER_FQDN',
-               defaultValue: 'ec2-3-75-94-236.eu-central-1.compute.amazonaws.com',
+               defaultValue: 'ec2-3-74-163-82.eu-central-1.compute.amazonaws.com',
                description: 'Server address for ssh connection')
     }
     
@@ -31,9 +31,10 @@ pipeline {
             steps {
                 echo "Git checkout (for demonstration only)"
                 sh 'git --version'
-                git branch: 'main', url: 'https://github.com/helijunky/ci-cd-test.git'
+                git branch: 'main', url: 'https://github.com/schumad/ci-cd-test.git'
             }
         }
+/*
         stage('Pull Docker images') {
             steps {
                 echo "Build Docker image ${params.IMAGE}"
@@ -52,6 +53,7 @@ pipeline {
                 sh "docker logout ${params.ARTIFACTORY_URL}"
             }
         }
+*/
         stage('Base installation') {
             when {
                 // Only deploy if the base installation is 'WITH_BASE_INSTALLATION'
@@ -77,12 +79,12 @@ pipeline {
             steps {
                 script {
                     echo "Deploy on server"
-                    sh "ssh -o StrictHostKeyChecking=no -i ${env.SERVER_LOGIN} ${params.SSH_USER}@${params.SERVER_FQDN} 'docker login ${params.ARTIFACTORY_URL} --username ${env.ARTIFACTORY_LOGIN_USR} --password ${env.ARTIFACTORY_LOGIN_PSW}'"
+                    //sh "ssh -o StrictHostKeyChecking=no -i ${env.SERVER_LOGIN} ${params.SSH_USER}@${params.SERVER_FQDN} 'docker login ${params.ARTIFACTORY_URL} --username ${env.ARTIFACTORY_LOGIN_USR} --password ${env.ARTIFACTORY_LOGIN_PSW}'"
                     if (params.MONGODB == 'REDEPLOY_MONGODB') {
-                        sh "ssh -o StrictHostKeyChecking=no -i ${env.SERVER_LOGIN} ${params.SSH_USER}@${params.SERVER_FQDN} 'docker pull ${params.ARTIFACTORY_URL}/mongo:5.0'"
+                        sh "ssh -o StrictHostKeyChecking=no -i ${env.SERVER_LOGIN} ${params.SSH_USER}@${params.SERVER_FQDN} 'docker pull mongo:5.0'"
                     }
-                    sh "ssh -o StrictHostKeyChecking=no -i ${env.SERVER_LOGIN} ${params.SSH_USER}@${params.SERVER_FQDN} 'docker pull ${params.ARTIFACTORY_URL}/rocket.chat:4.8.1'"
-                    sh "ssh -o StrictHostKeyChecking=no -i ${env.SERVER_LOGIN} ${params.SSH_USER}@${params.SERVER_FQDN} 'docker logout ${params.ARTIFACTORY_URL}'"
+                    sh "ssh -o StrictHostKeyChecking=no -i ${env.SERVER_LOGIN} ${params.SSH_USER}@${params.SERVER_FQDN} 'docker pull rocket.chat:4.8.1'"
+                    //sh "ssh -o StrictHostKeyChecking=no -i ${env.SERVER_LOGIN} ${params.SSH_USER}@${params.SERVER_FQDN} 'docker logout ${params.ARTIFACTORY_URL}'"
                 }
             }
         }
@@ -106,11 +108,11 @@ pipeline {
                 script {
                     echo "Starting new images Server"
                     if (params.MONGODB == 'REDEPLOY_MONGODB') {
-                        sh "ssh -o StrictHostKeyChecking=no -i ${env.SERVER_LOGIN} ${params.SSH_USER}@${params.SERVER_FQDN} 'docker run --rm --name db -d ${params.ARTIFACTORY_URL}/mongo:5.0 --replSet rs0 --oplogSize 128'"
+                        sh "ssh -o StrictHostKeyChecking=no -i ${env.SERVER_LOGIN} ${params.SSH_USER}@${params.SERVER_FQDN} 'docker run --rm --name db -d mongo:5.0 --replSet rs0 --oplogSize 128'"
                         sleep 5
                         sh "ssh -o StrictHostKeyChecking=no -i ${env.SERVER_LOGIN} ${params.SSH_USER}@${params.SERVER_FQDN} 'docker exec -i db mongo --eval \"printjson(rs.initiate())\"'"
                     }
-                sh "ssh -o StrictHostKeyChecking=no -i ${env.SERVER_LOGIN} ${params.SSH_USER}@${params.SERVER_FQDN} 'docker run --rm --name rocketchat -p 3000:3000 --link db --env ROOT_URL=http://localhost --env MONGO_OPLOG_URL=mongodb://db:27017/local -d ${params.ARTIFACTORY_URL}/rocket.chat:4.8.1'"
+                sh "ssh -o StrictHostKeyChecking=no -i ${env.SERVER_LOGIN} ${params.SSH_USER}@${params.SERVER_FQDN} 'docker run --rm --name rocketchat -p 3000:3000 --link db --env ROOT_URL=http://localhost --env MONGO_OPLOG_URL=mongodb://db:27017/local -d rocket.chat:4.8.1'"
                 sleep 60
                 }
             }
