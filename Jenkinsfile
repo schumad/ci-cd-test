@@ -22,7 +22,7 @@ pipeline {
                description: 'user for ssh connection')
 
         string(name: 'SERVER_FQDN',
-               defaultValue: 'ec2-3-74-163-82.eu-central-1.compute.amazonaws.com',
+               defaultValue: 'ec2-18-185-46-0.eu-central-1.compute.amazonaws.com',
                description: 'Server address for ssh connection')
     }
     
